@@ -62,7 +62,7 @@ export default function UploadZone({ onUpload, uploading, progress, error }) {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div style={{ width: "100%", maxWidth: 672, margin: "0 auto", textAlign: "center" }}>
       {!selectedFile ? (
         <div
           className={`upload-zone ${dragOver ? "drag-over" : ""}`}
@@ -117,7 +117,7 @@ export default function UploadZone({ onUpload, uploading, progress, error }) {
           </p>
         </div>
       ) : (
-        <div className="glass-card" style={{ padding: "1.5rem" }}>
+        <div className="glass-card" style={{ padding: "1.5rem", textAlign: "left" }}>
           {/* File Preview */}
           <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
             <div

@@ -106,7 +106,7 @@ export default function Home() {
       </div>
 
       {/* Upload Section */}
-      <div className="animate-fade-in-up" style={{ padding: "0 1rem 2.5rem", position: "relative", zIndex: 1, animationDelay: "0.3s" }}>
+      <div className="animate-fade-in-up" style={{ padding: "0 1rem 2.5rem", position: "relative", zIndex: 1, animationDelay: "0.3s", display: "flex", justifyContent: "center" }}>
         <UploadZone onUpload={handleUpload} uploading={uploading} progress={progress} error={error} />
       </div>
 
