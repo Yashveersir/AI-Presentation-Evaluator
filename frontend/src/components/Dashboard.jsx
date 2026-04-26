@@ -2,7 +2,7 @@ import ScoreCard from "./ScoreCard";
 import MetricsChart from "./MetricsChart";
 import TranscriptPanel from "./TranscriptPanel";
 import FeedbackPanel from "./FeedbackPanel";
-import VideoPreview from "./VideoPreview";
+
 import { Download, RefreshCw, TrendingUp, Mic, Eye, Sparkles } from "lucide-react";
 import { downloadPDFReport } from "../lib/api";
 
@@ -32,19 +32,13 @@ export default function Dashboard({ analysis, video }) {
         </button>
       </div>
 
-      {/* Top Row: Overall + Video */}
+      {/* Top Row: Overall + Transcript */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "1.5rem", marginBottom: "1.5rem" }}>
         <div className="animate-fade-in-up">
           <ScoreCard score={scores.overall || 0} label="Overall Score" size={200} subtitle="Weighted composite" />
         </div>
         <div className="animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-          {video?.videoUrl || video?.downloadURL ? (
-            <VideoPreview videoUrl={video.videoUrl || video.downloadURL} fileName={video.fileName} />
-          ) : (
-            <div className="glass-card" style={{ padding: "3rem", textAlign: "center", color: "var(--surface-500)", display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
-              Video preview unavailable
-            </div>
-          )}
+          <TranscriptPanel transcript={transcript} fillerWords={fillerWords} pauses={pauses} />
         </div>
       </div>
 
@@ -63,14 +57,9 @@ export default function Dashboard({ analysis, video }) {
       </div>
 
       {/* Charts Row */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", marginBottom: "1.5rem" }}>
+      <div style={{ marginBottom: "1.5rem" }}>
         <div className="animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
           <MetricsChart emotionData={emotionData} eyeContactData={eyeContactData || []} fillerWords={fillerWords} />
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-          <div className="animate-fade-in-up" style={{ animationDelay: "0.5s" }}>
-            <TranscriptPanel transcript={transcript} fillerWords={fillerWords} pauses={pauses} />
-          </div>
         </div>
       </div>
 

@@ -182,13 +182,10 @@ app.post('/api/analyze', upload.single('video'), async (req, res) => {
     const videoId = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     const videoPath = req.file.path;
     
-    const baseUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3001}`;
-    
     // Create initial document in Firestore
     await db.collection('videos').doc(videoId).set({
       userId,
       fileName: req.file.originalname,
-      videoUrl: `${baseUrl}/videos/${req.file.filename}`,
       status: 'processing',
       uploadedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
@@ -222,43 +219,19 @@ app.post('/api/analyze', upload.single('video'), async (req, res) => {
         status: 'failed',
         errorMessage: pipelineErr.message
       });
+    } finally {
+      // Immediately clean up video after processing
+      if (fs.existsSync(videoPath)) {
+        fs.unlinkSync(videoPath);
+        console.log(`[${videoId}] Deleted processed video: ${videoPath}`);
+      }
     }
-
-    // Notice: Video file is intentionally NOT deleted so it can be served to the frontend.
 
   } catch (error) {
     console.error('Server error:', error);
     res.status(500).json({ error: error.message });
   }
 });
-
-// Automated cleanup: delete videos older than 24 hours to save disk space
-setInterval(() => {
-  if (!fs.existsSync(uploadDir)) return;
-  
-  fs.readdir(uploadDir, (err, files) => {
-    if (err) {
-      console.error("Cleanup read error:", err);
-      return;
-    }
-    
-    const now = Date.now();
-    files.forEach(file => {
-      const filePath = path.join(uploadDir, file);
-      fs.stat(filePath, (err, stats) => {
-        if (err) return;
-        // 24 hours in milliseconds
-        if (now - stats.mtime.getTime() > 24 * 60 * 60 * 1000) {
-          fs.unlink(filePath, unlinkErr => {
-            if (!unlinkErr) {
-              console.log(`🧹 Cleaned up old video file: ${file}`);
-            }
-          });
-        }
-      });
-    });
-  });
-}, 60 * 60 * 1000); // Run every 1 hour
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
