@@ -59,6 +59,114 @@ const upload = multer({
 // Serve uploaded videos statically
 app.use('/videos', express.static(uploadDir));
 
+// API Landing Page
+app.get('/', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>PresentAI API Server</title>
+        <style>
+            :root {
+                --primary: #6366f1;
+                --bg: #0a0a0f;
+                --card: rgba(30, 30, 40, 0.7);
+            }
+            body {
+                margin: 0;
+                font-family: 'Inter', system-ui, sans-serif;
+                background: var(--bg);
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                overflow: hidden;
+            }
+            .container {
+                text-align: center;
+                padding: 3rem;
+                background: var(--card);
+                backdrop-filter: blur(20px);
+                border-radius: 24px;
+                border: 1px solid rgba(255,255,255,0.1);
+                box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+                max-width: 500px;
+            }
+            .logo {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+            }
+            h1 {
+                margin: 0;
+                background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                font-weight: 800;
+                letter-spacing: -1px;
+            }
+            p {
+                color: #94a3b8;
+                line-height: 1.6;
+                margin: 1.5rem 0 2rem;
+            }
+            .status {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(34, 197, 94, 0.1);
+                color: #4ade80;
+                padding: 8px 16px;
+                border-radius: 100px;
+                font-size: 0.875rem;
+                font-weight: 600;
+            }
+            .dot {
+                width: 8px;
+                height: 8px;
+                background: #22c55e;
+                border-radius: 50%;
+                box-shadow: 0 0 10px #22c55e;
+                animation: pulse 2s infinite;
+            }
+            @keyframes pulse {
+                0% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.5); opacity: 0.5; }
+                100% { transform: scale(1); opacity: 1; }
+            }
+            .btn {
+                display: inline-block;
+                background: var(--primary);
+                color: white;
+                text-decoration: none;
+                padding: 12px 28px;
+                border-radius: 12px;
+                font-weight: 600;
+                transition: all 0.3s;
+            }
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="logo">🚀</div>
+            <h1>PresentAI API</h1>
+            <p>Your AI Presentation Pipeline is currently active and processing requests. This server handles video analysis, speech-to-text, and coaching generation.</p>
+            <div style="margin-bottom: 2rem;">
+                <div class="status"><span class="dot"></span> System Operational</div>
+            </div>
+            <a href="https://presentai-eval-yash2026.web.app" class="btn">Go to Dashboard</a>
+        </div>
+    </body>
+    </html>
+  `);
+});
+
 // Main API Route for video upload and analysis
 app.post('/api/analyze', upload.single('video'), async (req, res) => {
   try {
