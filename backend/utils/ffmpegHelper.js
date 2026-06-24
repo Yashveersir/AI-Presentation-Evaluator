@@ -76,7 +76,7 @@ function extractFrames(videoPath, fps = 1, outputDir = null) {
     logger.info(`Extracting frames at ${fps} FPS from: ${videoPath}`);
 
     ffmpeg(videoPath)
-      .outputOptions([`-vf fps=${fps}`, "-q:v 2"])
+      .outputOptions([`-vf fps=${fps},scale=480:-1`, "-q:v 5"])
       .on("start", (cmd) => {
         logger.debug("FFmpeg frames command:", { cmd });
       })
