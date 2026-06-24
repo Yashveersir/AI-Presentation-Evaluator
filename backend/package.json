@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "deploy": "firebase deploy"
+    "deploy": "npx firebase-tools deploy"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
