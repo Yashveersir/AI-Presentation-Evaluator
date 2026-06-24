@@ -17,7 +17,7 @@ module.exports = async function feedbackGenerator(context) {
 
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
 
     // Build analysis data summary for Gemini
     const analysisData = {
@@ -51,8 +51,34 @@ Rules:
 - Be encouraging but honest. Reference actual numbers from the analysis.
 - Keep each entry to 1-2 sentences maximum.`;
 
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    let responseText;
+    try {
+      const result = await model.generateContent(prompt);
+      responseText = result.response.text();
+    } catch (geminiError) {
+      logger.warn("Gemini generation failed, trying Groq fallback: " + geminiError.message);
+      if (!process.env.GROQ_API_KEY) {
+        throw geminiError;
+      }
+      const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [{ role: 'user', content: prompt }],
+          response_format: { type: "json_object" }
+        })
+      });
+      const data = await groqResponse.json();
+      if (!groqResponse.ok) {
+        throw new Error(data.error?.message || "Groq API error");
+      }
+      responseText = data.choices[0].message.content;
+      logger.info("Feedback generated successfully via Groq fallback");
+    }
 
     let feedback;
     try {

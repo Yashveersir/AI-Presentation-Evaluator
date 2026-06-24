@@ -23,7 +23,7 @@ module.exports = async function speechToText(context) {
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
 
     // Read audio file and convert to base64
     const audioBuffer = fs.readFileSync(context.audioPath);
@@ -47,17 +47,56 @@ Rules:
 - If you cannot determine exact timestamps, estimate them evenly based on audio duration.
 - Return ONLY valid JSON, nothing else.`;
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          mimeType: "audio/wav",
-          data: audioBase64,
+    let responseText;
+    try {
+      const result = await model.generateContent([
+        prompt,
+        {
+          inlineData: {
+            mimeType: "audio/wav",
+            data: audioBase64,
+          },
         },
-      },
-    ]);
+      ]);
+      responseText = result.response.text();
+    } catch (geminiError) {
+      logger.warn("Gemini transcription failed, trying Groq fallback: " + geminiError.message);
+      if (!process.env.GROQ_API_KEY) {
+        throw geminiError;
+      }
+      
+      const formData = new FormData();
+      const audioBlob = new Blob([fs.readFileSync(context.audioPath)], { type: 'audio/wav' });
+      formData.append('file', audioBlob, 'audio.wav');
+      formData.append('model', 'whisper-large-v3');
+      formData.append('response_format', 'verbose_json');
 
-    const responseText = result.response.text();
+      const groqResponse = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
+        },
+        body: formData
+      });
+
+      const data = await groqResponse.json();
+      if (!groqResponse.ok) {
+        throw new Error(data.error?.message || "Groq audio API error");
+      }
+
+      const parsedOutput = {
+        text: data.text || "",
+        segments: (data.segments || []).map(s => ({
+          start: s.start,
+          end: s.end,
+          text: s.text
+        })),
+        words: []
+      };
+
+      responseText = JSON.stringify(parsedOutput);
+      logger.info("Speech-to-text completed successfully via Groq Whisper fallback");
+    }
 
     let parsed;
     try {
